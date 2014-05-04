@@ -17,19 +17,21 @@
        (filter #(.isFile %))
        (filter
         #(with-open [rdr (io/reader %)]
-           (some (fn [l] (re-find (re-pattern word) l)) (line-seq rdr))))
+           (some (fn [l]
+                   (re-find (re-pattern word) l))
+                 (line-seq rdr))))
        (map #(str (.getPath %) (.getName %)))))
 
 (defprotocol Source
   (search [this]))
 
-(defrecord Web [word]
-  Source
-  (search [this] (google (:word this))))
+(defmacro defsource [type finder]
+  `(defrecord ~type [~'word]
+    Source
+    (search [this#] (~finder (:word this#)))))
 
-(defrecord Local [word]
-  Source
-  (search [this] (grep (:word this))))
+(defsource Web   google)
+(defsource Local grep)
 
 (def typed-words
   (concat
@@ -39,6 +41,9 @@
 (defn compaction [coll]
   (distinct (filter (comp not empty?) coll)))
 
+(defn mprint [coll] (println (interleave coll (repeat "\n"))))
+
 (defn -main []
-  (time (println (compaction (pmap search typed-words))))
+  (time (mprint (compaction (pmap search typed-words))))
   (shutdown-agents))
+
