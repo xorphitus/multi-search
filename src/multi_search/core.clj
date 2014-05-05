@@ -14,7 +14,7 @@
        (map #(last (clojure.string/split % #"url=")))))
 
 (defn grep [word]
-  (->> (file-seq (io/file "/var/log"))
+  (->> (file-seq (io/file (str (System/getenv "HOME") "/junk")))
        (filter #(.isFile %))
        (filter
         #(with-open [rdr (io/reader %)]
