@@ -34,10 +34,14 @@
 (defsource Web   google)
 (defsource Local grep)
 
-(def typed-words
-  (concat
-   (map #(Web. %) words)
-   (map #(Local. %) words)))
+(defmacro gen-searchables [sources targets]
+  (let [typed-words
+        (map
+         (fn [src]
+           (let [rec (symbol (str `~src "."))]
+             `(map #(~rec %) ~targets)))
+         sources)]
+    `(concat ~@typed-words)))
 
 (defn compaction [coll]
   (distinct (filter (comp not empty?) coll)))
@@ -45,6 +49,5 @@
 (defn mprint [coll] (println (interleave coll (repeat "\n"))))
 
 (defn -main []
-  (time (mprint (compaction (flatten (pmap search typed-words)))))
+  (time (mprint (compaction (flatten (pmap search (gen-searchables [Web Local] words))))))
   (shutdown-agents))
-
