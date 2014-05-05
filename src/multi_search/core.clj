@@ -10,7 +10,8 @@
        (filter #(= (:tag %) :link))
        (map :content)
        (map first)
-       (take 5)))
+       flatten
+       (map #(last (clojure.string/split % #"url=")))))
 
 (defn grep [word]
   (->> (file-seq (io/file "/var/log"))
@@ -44,6 +45,6 @@
 (defn mprint [coll] (println (interleave coll (repeat "\n"))))
 
 (defn -main []
-  (time (mprint (compaction (pmap search typed-words))))
+  (time (mprint (compaction (flatten (pmap search typed-words)))))
   (shutdown-agents))
 
